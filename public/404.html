@@ -7,23 +7,20 @@
     <title>youtube-dashboard</title>
     <script>
       // GitHub Pages SPA redirect hack
-      // When a user navigates to /callback, GitHub Pages serves this 404.html
-      // This script captures the path and redirects to index.html with the path as a query parameter
       (function() {
         var basePath = '/naked-login-dashboard';
-        var fullPath = window.location.pathname;
+        var pathname = window.location.pathname;
         var hash = window.location.hash;
         
-        // Remove base path to get the actual route
-        if (fullPath.startsWith(basePath)) {
-          var path = fullPath.slice(basePath.length);
-          
-          if (path) {
-            // Store the path and hash, then redirect to root
-            sessionStorage.setItem('redirect_path', path);
-            sessionStorage.setItem('redirect_hash', hash);
-            window.location.replace(basePath + '/');
+        // Only process if we're on a sub-route (not the root)
+        if (pathname !== basePath && pathname !== basePath + '/') {
+          // Store the pathname and hash for later restoration
+          sessionStorage.setItem('spa_redirect_pathname', pathname);
+          if (hash) {
+            sessionStorage.setItem('spa_redirect_hash', hash);
           }
+          // Redirect to root
+          window.location.replace(basePath + '/');
         }
       })();
     </script>

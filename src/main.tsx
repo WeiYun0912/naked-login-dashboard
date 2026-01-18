@@ -5,15 +5,15 @@ import App from './App';
 
 // Handle GitHub Pages SPA redirect
 (function() {
-  const redirectPath = sessionStorage.getItem('redirect_path');
-  const redirectHash = sessionStorage.getItem('redirect_hash');
+  const redirectPathname = sessionStorage.getItem('spa_redirect_pathname');
+  const redirectHash = sessionStorage.getItem('spa_redirect_hash');
   
-  if (redirectPath) {
-    sessionStorage.removeItem('redirect_path');
-    sessionStorage.removeItem('redirect_hash');
+  if (redirectPathname) {
+    sessionStorage.removeItem('spa_redirect_pathname');
+    sessionStorage.removeItem('spa_redirect_hash');
     
-    // Reconstruct the full path with hash
-    const fullPath = '/' + redirectPath + (redirectHash || '');
+    // Restore the original URL
+    const fullPath = redirectPathname + (redirectHash || '');
     window.history.replaceState(null, '', fullPath);
   }
 })();
