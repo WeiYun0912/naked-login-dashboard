@@ -1,37 +1,39 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { exchangeCodeForTokens } from '@/services/auth';
+import { useNavigate } from 'react-router-dom';
+import { parseTokensFromHash } from '@/services/auth';
 import { Background } from '@/components/layout/Background';
 import { Container } from '@/components/layout/Container';
 import { Card } from '@/components/ui/Card';
 
 export function Callback() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const code = searchParams.get('code');
-    const errorParam = searchParams.get('error');
+    // Check for error in URL parameters
+    const params = new URLSearchParams(window.location.search);
+    const errorParam = params.get('error');
 
     if (errorParam) {
       setError(`授權失敗：${errorParam}`);
       return;
     }
 
-    if (!code) {
-      setError('未收到授權碼');
-      return;
-    }
+    // Parse tokens from URL hash (implicit flow)
+    const tokens = parseTokensFromHash();
 
-    exchangeCodeForTokens(code)
-      .then(() => {
-        navigate('/', { replace: true });
-      })
-      .catch((err: Error) => {
-        setError(err.message || '授權處理失敗');
-      });
-  }, [searchParams, navigate]);
+    if (tokens) {
+      // Successfully got tokens, redirect to home
+      navigate('/', { replace: true });
+    } else {
+      // Check if there's a hash but no valid tokens
+      if (window.location.hash) {
+        setError('無法解析授權回應，請重試');
+      } else {
+        setError('未收到授權回應');
+      }
+    }
+  }, [navigate]);
 
   return (
     <div className="min-h-screen relative flex items-center justify-center">

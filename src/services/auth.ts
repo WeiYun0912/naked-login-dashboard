@@ -1,5 +1,4 @@
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-const CLIENT_SECRET = import.meta.env.VITE_GOOGLE_CLIENT_SECRET;
 const REDIRECT_URI = import.meta.env.VITE_OAUTH_REDIRECT_URI || 'http://localhost:5173/callback';
 
 const SCOPES = [
@@ -11,82 +10,66 @@ const AUTH_STORAGE_KEY = 'youtube_dashboard_auth';
 
 export interface AuthTokens {
   accessToken: string;
-  refreshToken: string | null;
   expiresAt: number;
 }
 
+// Generate random string for state parameter (CSRF protection)
+function generateRandomString(length: number): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
 export function getAuthUrl(): string {
+  const state = generateRandomString(32);
+  sessionStorage.setItem('oauth_state', state);
+
   const params = new URLSearchParams({
     client_id: CLIENT_ID,
     redirect_uri: REDIRECT_URI,
-    response_type: 'code',
+    response_type: 'token', // Implicit Flow - returns access token directly
     scope: SCOPES,
-    access_type: 'offline',
-    prompt: 'consent',
+    state: state,
   });
 
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 }
 
-export async function exchangeCodeForTokens(code: string): Promise<AuthTokens> {
-  const response = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: new URLSearchParams({
-      code,
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
-      redirect_uri: REDIRECT_URI,
-      grant_type: 'authorization_code',
-    }),
-  });
+// Parse tokens from URL hash (for implicit flow)
+export function parseTokensFromHash(): AuthTokens | null {
+  const hash = window.location.hash.substring(1);
+  if (!hash) return null;
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error_description || 'Failed to exchange code for tokens');
+  const params = new URLSearchParams(hash);
+  const accessToken = params.get('access_token');
+  const expiresIn = params.get('expires_in');
+  const state = params.get('state');
+
+  // Verify state parameter
+  const savedState = sessionStorage.getItem('oauth_state');
+  if (state !== savedState) {
+    console.error('State mismatch - potential CSRF attack');
+    return null;
   }
 
-  const data = await response.json();
+  if (!accessToken || !expiresIn) {
+    return null;
+  }
 
   const tokens: AuthTokens = {
-    accessToken: data.access_token,
-    refreshToken: data.refresh_token || null,
-    expiresAt: Date.now() + data.expires_in * 1000,
+    accessToken,
+    expiresAt: Date.now() + parseInt(expiresIn, 10) * 1000,
   };
 
   saveTokens(tokens);
-  return tokens;
-}
+  sessionStorage.removeItem('oauth_state');
 
-export async function refreshAccessToken(refreshToken: string): Promise<AuthTokens> {
-  const response = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: new URLSearchParams({
-      refresh_token: refreshToken,
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
-      grant_type: 'refresh_token',
-    }),
-  });
+  // Clear hash from URL
+  window.history.replaceState(null, '', window.location.pathname);
 
-  if (!response.ok) {
-    throw new Error('Failed to refresh access token');
-  }
-
-  const data = await response.json();
-
-  const tokens: AuthTokens = {
-    accessToken: data.access_token,
-    refreshToken: refreshToken,
-    expiresAt: Date.now() + data.expires_in * 1000,
-  };
-
-  saveTokens(tokens);
   return tokens;
 }
 
@@ -107,6 +90,7 @@ export function getStoredTokens(): AuthTokens | null {
 
 export function clearTokens(): void {
   localStorage.removeItem(AUTH_STORAGE_KEY);
+  sessionStorage.removeItem('oauth_state');
 }
 
 export function isTokenExpired(tokens: AuthTokens): boolean {
@@ -118,15 +102,6 @@ export async function getValidAccessToken(): Promise<string | null> {
   if (!tokens) return null;
 
   if (isTokenExpired(tokens)) {
-    if (tokens.refreshToken) {
-      try {
-        const newTokens = await refreshAccessToken(tokens.refreshToken);
-        return newTokens.accessToken;
-      } catch {
-        clearTokens();
-        return null;
-      }
-    }
     clearTokens();
     return null;
   }
