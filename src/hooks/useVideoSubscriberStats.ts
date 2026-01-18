@@ -16,7 +16,41 @@ export function useVideoSubscriberStats(
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = useCallback(async () => {
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    let isMounted = true;
+
+    const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const data = await fetchVideoSubscriberStats(days);
+        if (isMounted) {
+          setStats(data);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : '無法取得影片訂閱數據');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated, days]);
+
+  const refetch = useCallback(async () => {
     if (!isAuthenticated) {
       return;
     }
@@ -34,16 +68,10 @@ export function useVideoSubscriberStats(
     }
   }, [isAuthenticated, days]);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchData();
-    }
-  }, [isAuthenticated, fetchData]);
-
   return {
     stats,
     isLoading,
     error,
-    refetch: fetchData,
+    refetch,
   };
 }

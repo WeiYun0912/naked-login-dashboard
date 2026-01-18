@@ -21,7 +21,48 @@ export function useYouTubeAnalytics(
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = useCallback(async () => {
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    let isMounted = true;
+
+    const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const [analyticsData, viewsData, subsData] = await Promise.all([
+          fetchAnalyticsData(days),
+          fetchDailyViews(days),
+          fetchSubscriberChange(days),
+        ]);
+
+        if (isMounted) {
+          setAnalytics(analyticsData);
+          setDailyViews(viewsData);
+          setSubscriberChange(subsData);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : '無法取得分析數據');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [days, isAuthenticated]);
+
+  const refetch = useCallback(async () => {
     if (!isAuthenticated) {
       setError('請先登入以查看分析數據');
       return;
@@ -47,18 +88,12 @@ export function useYouTubeAnalytics(
     }
   }, [days, isAuthenticated]);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchData();
-    }
-  }, [isAuthenticated, fetchData]);
-
   return {
     analytics,
     dailyViews,
     subscriberChange,
     isLoading,
     error,
-    refetch: fetchData,
+    refetch,
   };
 }

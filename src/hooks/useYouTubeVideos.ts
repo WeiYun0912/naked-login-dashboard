@@ -23,7 +23,37 @@ export function useYouTubeVideos(
   const [sortOption, setSortOption] = useState<SortOption>('date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
-  const fetchData = async () => {
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const data = await fetchChannelVideos(channelId, maxResults);
+        if (isMounted) {
+          setVideos(data);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : 'Failed to fetch videos');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [channelId, maxResults]);
+
+  const refetch = async () => {
     setIsLoading(true);
     setError(null);
 
@@ -36,10 +66,6 @@ export function useYouTubeVideos(
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchData();
-  }, [channelId, maxResults]);
 
   const sortedVideos = useMemo(() => {
     const sorted = [...videos].sort((a, b) => {
@@ -74,6 +100,6 @@ export function useYouTubeVideos(
     sortDirection,
     setSortOption,
     setSortDirection,
-    refetch: fetchData,
+    refetch,
   };
 }

@@ -14,7 +14,37 @@ export function useYouTubeChannel(channelId?: string): UseYouTubeChannelReturn {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = async () => {
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const data = await fetchChannelInfo(channelId);
+        if (isMounted) {
+          setChannel(data);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : 'Failed to fetch channel data');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [channelId]);
+
+  const refetch = async () => {
     setIsLoading(true);
     setError(null);
 
@@ -28,14 +58,10 @@ export function useYouTubeChannel(channelId?: string): UseYouTubeChannelReturn {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, [channelId]);
-
   return {
     channel,
     isLoading,
     error,
-    refetch: fetchData,
+    refetch,
   };
 }
