@@ -1,0 +1,16 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Dashboard } from '@/pages/Dashboard';
+import { Callback } from '@/pages/Callback';
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/callback" element={<Callback />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;
