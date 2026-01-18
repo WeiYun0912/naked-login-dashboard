@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/naked-login-dashboard/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>youtube-dashboard</title>
+    <script>
+      // GitHub Pages SPA redirect hack
+      // When a user navigates to /callback, GitHub Pages serves this 404.html
+      // This script captures the path and redirects to index.html with the path as a query parameter
+      (function() {
+        var basePath = '/naked-login-dashboard';
+        var fullPath = window.location.pathname;
+        var hash = window.location.hash;
+        
+        // Remove base path to get the actual route
+        if (fullPath.startsWith(basePath)) {
+          var path = fullPath.slice(basePath.length);
+          
+          if (path) {
+            // Store the path and hash, then redirect to root
+            sessionStorage.setItem('redirect_path', path);
+            sessionStorage.setItem('redirect_hash', hash);
+            window.location.replace(basePath + '/');
+          }
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
