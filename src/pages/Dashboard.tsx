@@ -1,16 +1,23 @@
+import { useState } from 'react';
 import { Background } from '@/components/layout/Background';
 import { Container } from '@/components/layout/Container';
 import { StatsGrid } from '@/components/stats/StatsGrid';
 import { VideoList } from '@/components/videos/VideoList';
 import { SubscriberChart } from '@/components/charts/SubscriberChart';
 import { ViewsChart } from '@/components/charts/ViewsChart';
+import { TrafficSourcesChart } from '@/components/analytics/TrafficSourcesChart';
+import { DemographicsChart } from '@/components/analytics/DemographicsChart';
+import { GeographyChart } from '@/components/analytics/GeographyChart';
 import { LoginButton } from '@/components/auth/LoginButton';
 import { Card } from '@/components/ui/Card';
+import { DateRangePicker } from '@/components/ui/DateRangePicker';
 import { useAuth } from '@/hooks/useAuth';
 import { useYouTubeChannel } from '@/hooks/useYouTubeChannel';
 import { useYouTubeVideos } from '@/hooks/useYouTubeVideos';
 import { useYouTubeAnalytics } from '@/hooks/useYouTubeAnalytics';
 import { useVideoSubscriberStats } from '@/hooks/useVideoSubscriberStats';
+import { useTrafficSources } from '@/hooks/useTrafficSources';
+import { useDemographics } from '@/hooks/useDemographics';
 import { motion } from 'framer-motion';
 
 function YouTubeIcon() {
@@ -22,6 +29,12 @@ function YouTubeIcon() {
 }
 
 export function Dashboard() {
+  // Date range state (default to last 30 days)
+  const [dateRange, setDateRange] = useState({
+    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+    endDate: new Date(),
+  });
+
   const { isAuthenticated, isLoading: authLoading, login, logout } = useAuth();
   const { channel, isLoading: channelLoading, error: channelError } = useYouTubeChannel();
   const {
@@ -38,8 +51,19 @@ export function Dashboard() {
     subscriberChange,
     isLoading: analyticsLoading,
     error: analyticsError,
-  } = useYouTubeAnalytics(30, isAuthenticated);
-  const { stats: videoSubscriberStats } = useVideoSubscriberStats(isAuthenticated);
+  } = useYouTubeAnalytics(dateRange, isAuthenticated);
+  const { stats: videoSubscriberStats } = useVideoSubscriberStats(dateRange, isAuthenticated);
+  const {
+    trafficSources,
+    isLoading: trafficLoading,
+    error: trafficError,
+  } = useTrafficSources(dateRange, isAuthenticated);
+  const {
+    demographics,
+    geography,
+    isLoading: demographicsLoading,
+    error: demographicsError,
+  } = useDemographics(dateRange, isAuthenticated);
 
   return (
     <div className="min-h-screen relative">
@@ -74,6 +98,17 @@ export function Dashboard() {
             onLogout={logout}
           />
         </motion.header>
+
+        {/* Date Range Picker */}
+        {isAuthenticated && (
+          <motion.section
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+          >
+            <DateRangePicker value={dateRange} onChange={setDateRange} />
+          </motion.section>
+        )}
 
         {/* Channel Error */}
         {channelError && (
@@ -140,6 +175,36 @@ export function Dashboard() {
           )}
         </section>
 
+        {/* Traffic Sources Section */}
+        {isAuthenticated && (
+          <section>
+            <TrafficSourcesChart
+              data={trafficSources}
+              isLoading={trafficLoading}
+              error={trafficError}
+            />
+          </section>
+        )}
+
+        {/* Audience Demographics Section */}
+        {isAuthenticated && (
+          <section>
+            <h2 className="text-xl font-bold text-foreground mb-4">觀眾洞察</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <DemographicsChart
+                data={demographics}
+                isLoading={demographicsLoading}
+                error={demographicsError}
+              />
+              <GeographyChart
+                data={geography}
+                isLoading={demographicsLoading}
+                error={demographicsError}
+              />
+            </div>
+          </section>
+        )}
+
         {/* Videos Section */}
         <section>
           <VideoList
@@ -157,7 +222,7 @@ export function Dashboard() {
         {/* Footer */}
         <footer className="text-center py-8 border-t border-border">
           <p className="text-sm text-foreground-muted">
-            YouTube Dashboard - 使用 YouTube Data API 和 Analytics API
+            YouTube Dashboard - 低階思維
           </p>
         </footer>
       </Container>

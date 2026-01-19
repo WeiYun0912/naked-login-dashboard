@@ -154,6 +154,89 @@ export async function fetchChannelVideos(
   }));
 }
 
+export async function fetchAllChannelVideos(
+  channelId: string = CHANNEL_ID,
+  onProgress?: (count: number) => void
+): Promise<Video[]> {
+  const allVideos: Video[] = [];
+  let pageToken: string | undefined = undefined;
+  const maxResultsPerPage = 50; // YouTube API 單次請求上限
+
+  try {
+    do {
+      // First, get video IDs from the channel
+      const searchParams = new URLSearchParams({
+        part: 'id',
+        channelId: channelId,
+        maxResults: maxResultsPerPage.toString(),
+        order: 'date',
+        type: 'video',
+        key: API_KEY,
+      });
+
+      if (pageToken) {
+        searchParams.append('pageToken', pageToken);
+      }
+
+      const searchResponse = await fetch(`${BASE_URL}/search?${searchParams}`);
+
+      if (!searchResponse.ok) {
+        throw new Error('Failed to fetch channel videos');
+      }
+
+      const searchData: YouTubeSearchResponse = await searchResponse.json();
+
+      if (!searchData.items || searchData.items.length === 0) {
+        break;
+      }
+
+      const videoIds = searchData.items.map((item) => item.id.videoId).join(',');
+
+      // Then, get detailed video info
+      const videosParams = new URLSearchParams({
+        part: 'snippet,statistics,contentDetails',
+        id: videoIds,
+        key: API_KEY,
+      });
+
+      const videosResponse = await fetch(`${BASE_URL}/videos?${videosParams}`);
+
+      if (!videosResponse.ok) {
+        throw new Error('Failed to fetch video details');
+      }
+
+      const videosData: YouTubeVideoResponse = await videosResponse.json();
+
+      const videos = videosData.items.map((item) => ({
+        id: item.id,
+        title: item.snippet.title,
+        description: item.snippet.description,
+        publishedAt: item.snippet.publishedAt,
+        thumbnails: item.snippet.thumbnails,
+        statistics: {
+          viewCount: parseInt(item.statistics.viewCount || '0', 10),
+          likeCount: parseInt(item.statistics.likeCount || '0', 10),
+          commentCount: parseInt(item.statistics.commentCount || '0', 10),
+        },
+        duration: item.contentDetails.duration,
+      }));
+
+      allVideos.push(...videos);
+
+      // 呼叫進度回調
+      if (onProgress) {
+        onProgress(allVideos.length);
+      }
+
+      pageToken = searchData.nextPageToken;
+    } while (pageToken);
+
+    return allVideos;
+  } catch (error) {
+    throw error;
+  }
+}
+
 export function parseDuration(duration: string): string {
   const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
   if (!match) return '0:00';

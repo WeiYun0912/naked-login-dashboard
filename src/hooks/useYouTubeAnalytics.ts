@@ -2,6 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import type { AnalyticsData } from '@/types/youtube';
 import { fetchAnalyticsData, fetchDailyViews, fetchSubscriberChange } from '@/services/youtubeAnalytics';
 
+interface DateRange {
+  startDate: Date;
+  endDate: Date;
+}
+
 interface UseYouTubeAnalyticsReturn {
   analytics: AnalyticsData | null;
   dailyViews: Array<{ date: string; views: number }>;
@@ -12,7 +17,7 @@ interface UseYouTubeAnalyticsReturn {
 }
 
 export function useYouTubeAnalytics(
-  days: number = 30,
+  dateRange: DateRange,
   isAuthenticated: boolean = false
 ): UseYouTubeAnalyticsReturn {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
@@ -34,9 +39,9 @@ export function useYouTubeAnalytics(
 
       try {
         const [analyticsData, viewsData, subsData] = await Promise.all([
-          fetchAnalyticsData(days),
-          fetchDailyViews(days),
-          fetchSubscriberChange(days),
+          fetchAnalyticsData(dateRange.startDate, dateRange.endDate),
+          fetchDailyViews(dateRange.startDate, dateRange.endDate),
+          fetchSubscriberChange(dateRange.startDate, dateRange.endDate),
         ]);
 
         if (isMounted) {
@@ -60,7 +65,7 @@ export function useYouTubeAnalytics(
     return () => {
       isMounted = false;
     };
-  }, [days, isAuthenticated]);
+  }, [dateRange.startDate, dateRange.endDate, isAuthenticated]);
 
   const refetch = useCallback(async () => {
     if (!isAuthenticated) {
@@ -73,9 +78,9 @@ export function useYouTubeAnalytics(
 
     try {
       const [analyticsData, viewsData, subsData] = await Promise.all([
-        fetchAnalyticsData(days),
-        fetchDailyViews(days),
-        fetchSubscriberChange(days),
+        fetchAnalyticsData(dateRange.startDate, dateRange.endDate),
+        fetchDailyViews(dateRange.startDate, dateRange.endDate),
+        fetchSubscriberChange(dateRange.startDate, dateRange.endDate),
       ]);
 
       setAnalytics(analyticsData);
@@ -86,7 +91,7 @@ export function useYouTubeAnalytics(
     } finally {
       setIsLoading(false);
     }
-  }, [days, isAuthenticated]);
+  }, [dateRange.startDate, dateRange.endDate, isAuthenticated]);
 
   return {
     analytics,

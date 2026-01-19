@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Dashboard } from '@/pages/Dashboard';
+import { VideoDetail } from '@/pages/VideoDetail';
 import { Callback } from '@/pages/Callback';
 
 function App() {
@@ -10,6 +11,7 @@ function App() {
     <BrowserRouter basename={basename}>
       <Routes>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/video/:videoId" element={<VideoDetail />} />
         <Route path="/callback" element={<Callback />} />
       </Routes>
     </BrowserRouter>

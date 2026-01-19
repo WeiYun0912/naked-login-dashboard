@@ -1,28 +1,29 @@
 import { useState, useEffect, useCallback } from 'react';
-import { fetchVideoSubscriberStats, type VideoSubscriberStats } from '@/services/youtubeAnalytics';
+import { fetchVideoAnalytics, type VideoAnalytics } from '@/services/youtubeAnalytics';
 
 interface DateRange {
   startDate: Date;
   endDate: Date;
 }
 
-interface UseVideoSubscriberStatsReturn {
-  stats: Map<string, VideoSubscriberStats>;
+interface UseVideoAnalyticsReturn {
+  analytics: VideoAnalytics | null;
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
 }
 
-export function useVideoSubscriberStats(
+export function useVideoAnalytics(
+  videoId: string,
   dateRange: DateRange,
   isAuthenticated: boolean = false
-): UseVideoSubscriberStatsReturn {
-  const [stats, setStats] = useState<Map<string, VideoSubscriberStats>>(new Map());
+): UseVideoAnalyticsReturn {
+  const [analytics, setAnalytics] = useState<VideoAnalytics | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !videoId) {
       return;
     }
 
@@ -33,13 +34,13 @@ export function useVideoSubscriberStats(
       setError(null);
 
       try {
-        const data = await fetchVideoSubscriberStats(dateRange.startDate, dateRange.endDate);
+        const data = await fetchVideoAnalytics(videoId, dateRange.startDate, dateRange.endDate);
         if (isMounted) {
-          setStats(data);
+          setAnalytics(data);
         }
       } catch (err) {
         if (isMounted) {
-          setError(err instanceof Error ? err.message : '無法取得影片訂閱數據');
+          setError(err instanceof Error ? err.message : '無法取得影片分析數據');
         }
       } finally {
         if (isMounted) {
@@ -53,10 +54,10 @@ export function useVideoSubscriberStats(
     return () => {
       isMounted = false;
     };
-  }, [isAuthenticated, dateRange.startDate, dateRange.endDate]);
+  }, [videoId, dateRange.startDate, dateRange.endDate, isAuthenticated]);
 
   const refetch = useCallback(async () => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !videoId) {
       return;
     }
 
@@ -64,17 +65,17 @@ export function useVideoSubscriberStats(
     setError(null);
 
     try {
-      const data = await fetchVideoSubscriberStats(dateRange.startDate, dateRange.endDate);
-      setStats(data);
+      const data = await fetchVideoAnalytics(videoId, dateRange.startDate, dateRange.endDate);
+      setAnalytics(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '無法取得影片訂閱數據');
+      setError(err instanceof Error ? err.message : '無法取得影片分析數據');
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated, dateRange.startDate, dateRange.endDate]);
+  }, [videoId, dateRange.startDate, dateRange.endDate, isAuthenticated]);
 
   return {
-    stats,
+    analytics,
     isLoading,
     error,
     refetch,

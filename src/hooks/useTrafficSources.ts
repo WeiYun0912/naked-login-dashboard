@@ -1,23 +1,23 @@
 import { useState, useEffect, useCallback } from 'react';
-import { fetchVideoSubscriberStats, type VideoSubscriberStats } from '@/services/youtubeAnalytics';
+import { fetchTrafficSources, type TrafficSource } from '@/services/youtubeAnalytics';
 
 interface DateRange {
   startDate: Date;
   endDate: Date;
 }
 
-interface UseVideoSubscriberStatsReturn {
-  stats: Map<string, VideoSubscriberStats>;
+interface UseTrafficSourcesReturn {
+  trafficSources: TrafficSource[];
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
 }
 
-export function useVideoSubscriberStats(
+export function useTrafficSources(
   dateRange: DateRange,
   isAuthenticated: boolean = false
-): UseVideoSubscriberStatsReturn {
-  const [stats, setStats] = useState<Map<string, VideoSubscriberStats>>(new Map());
+): UseTrafficSourcesReturn {
+  const [trafficSources, setTrafficSources] = useState<TrafficSource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,13 +33,13 @@ export function useVideoSubscriberStats(
       setError(null);
 
       try {
-        const data = await fetchVideoSubscriberStats(dateRange.startDate, dateRange.endDate);
+        const data = await fetchTrafficSources(dateRange.startDate, dateRange.endDate);
         if (isMounted) {
-          setStats(data);
+          setTrafficSources(data);
         }
       } catch (err) {
         if (isMounted) {
-          setError(err instanceof Error ? err.message : '無法取得影片訂閱數據');
+          setError(err instanceof Error ? err.message : '無法取得流量來源數據');
         }
       } finally {
         if (isMounted) {
@@ -53,7 +53,7 @@ export function useVideoSubscriberStats(
     return () => {
       isMounted = false;
     };
-  }, [isAuthenticated, dateRange.startDate, dateRange.endDate]);
+  }, [dateRange.startDate, dateRange.endDate, isAuthenticated]);
 
   const refetch = useCallback(async () => {
     if (!isAuthenticated) {
@@ -64,17 +64,17 @@ export function useVideoSubscriberStats(
     setError(null);
 
     try {
-      const data = await fetchVideoSubscriberStats(dateRange.startDate, dateRange.endDate);
-      setStats(data);
+      const data = await fetchTrafficSources(dateRange.startDate, dateRange.endDate);
+      setTrafficSources(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '無法取得影片訂閱數據');
+      setError(err instanceof Error ? err.message : '無法取得流量來源數據');
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated, dateRange.startDate, dateRange.endDate]);
+  }, [dateRange.startDate, dateRange.endDate, isAuthenticated]);
 
   return {
-    stats,
+    trafficSources,
     isLoading,
     error,
     refetch,
