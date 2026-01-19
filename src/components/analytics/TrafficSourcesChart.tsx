@@ -89,28 +89,28 @@ export function TrafficSourcesChart({ data, isLoading, error }: TrafficSourcesCh
   }
 
   return (
-    <Card className="p-6">
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold text-foreground mb-1">流量來源分析</h3>
-        <p className="text-sm text-foreground-muted">觀眾如何找到你的影片</p>
+    <Card className="p-4 sm:p-6">
+      <div className="mb-4 sm:mb-6">
+        <h3 className="text-base sm:text-lg font-semibold text-foreground mb-1">流量來源分析</h3>
+        <p className="text-xs sm:text-sm text-foreground-muted">觀眾如何找到你的影片</p>
         <div className="mt-2">
-          <span className="text-sm text-foreground-muted">總觀看數：</span>
-          <span className="ml-2 text-sm font-medium text-foreground">{formatNumber(totalViews)}</span>
+          <span className="text-xs sm:text-sm text-foreground-muted">總觀看數：</span>
+          <span className="ml-2 text-xs sm:text-sm font-medium text-foreground">{formatNumber(totalViews)}</span>
         </div>
       </div>
 
-      <div className="h-96">
+      <div className="h-[500px] sm:h-96">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={chartData}
             layout="vertical"
-            margin={{ top: 5, right: 30, left: 120, bottom: 5 }}
+            margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" horizontal={false} />
             <XAxis
               type="number"
               stroke="#5C5F66"
-              fontSize={12}
+              fontSize={10}
               tickLine={false}
               axisLine={false}
               tickFormatter={formatNumber}
@@ -119,10 +119,10 @@ export function TrafficSourcesChart({ data, isLoading, error }: TrafficSourcesCh
               type="category"
               dataKey="sourceTypeName"
               stroke="#5C5F66"
-              fontSize={12}
+              fontSize={10}
               tickLine={false}
               axisLine={false}
-              width={110}
+              width={80}
             />
             <Tooltip
               contentStyle={{
@@ -163,15 +163,15 @@ export function TrafficSourcesChart({ data, isLoading, error }: TrafficSourcesCh
       </div>
 
       {/* Legend showing percentage breakdown */}
-      <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm">
         {chartData.slice(0, 6).map((source, index) => (
           <div key={source.sourceType} className="flex items-center gap-2">
             <div
               className="w-3 h-3 rounded-sm flex-shrink-0"
               style={{ backgroundColor: COLORS[index % COLORS.length] }}
             />
-            <span className="text-foreground-muted truncate">{source.sourceTypeName}</span>
-            <span className="text-foreground font-medium ml-auto">{source.percentage.toFixed(1)}%</span>
+            <span className="text-foreground-muted truncate flex-1">{source.sourceTypeName}</span>
+            <span className="text-foreground font-medium">{source.percentage.toFixed(1)}%</span>
           </div>
         ))}
       </div>
