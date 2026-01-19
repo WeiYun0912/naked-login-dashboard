@@ -36,7 +36,8 @@ export function DemographicsChart({ data, isLoading, error }: DemographicsChartP
           其他: 0,
         };
       }
-      acc[item.ageGroup][item.gender] = item.viewsPercentage;
+      const genderKey = item.gender as '男性' | '女性' | '其他';
+      acc[item.ageGroup][genderKey] = item.viewsPercentage;
       return acc;
     }, {} as Record<string, { ageGroup: string; 男性: number; 女性: number; 其他: number }>);
 
@@ -118,9 +119,9 @@ export function DemographicsChart({ data, isLoading, error }: DemographicsChartP
                 color: '#EDEDEF',
               }}
               labelStyle={{ color: '#EDEDEF', fontWeight: 600, marginBottom: '8px' }}
-              formatter={(value: number, name: string) => [
-                `${value.toFixed(1)}%`,
-                name,
+              formatter={(value: number | undefined, name: string | undefined) => [
+                `${(value || 0).toFixed(1)}%`,
+                name || '',
               ]}
             />
             <Legend

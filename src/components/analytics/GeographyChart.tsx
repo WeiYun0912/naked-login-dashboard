@@ -112,11 +112,13 @@ export function GeographyChart({ data, isLoading, error }: GeographyChartProps) 
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
-              data={chartData}
+              data={chartData as any}
               cx="50%"
               cy="50%"
               labelLine={false}
-              label={({ countryName, viewsPercentage }) => {
+              label={(props: any) => {
+                const viewsPercentage = props.viewsPercentage || 0;
+                const countryName = props.countryName || '';
                 if (viewsPercentage < 3) return null; // Don't show label for small slices
                 return `${countryName} ${viewsPercentage.toFixed(1)}%`;
               }}
@@ -124,7 +126,7 @@ export function GeographyChart({ data, isLoading, error }: GeographyChartProps) 
               fill="#8884d8"
               dataKey="views"
             >
-              {chartData.map((entry, index) => (
+              {chartData.map((_entry, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
@@ -135,7 +137,7 @@ export function GeographyChart({ data, isLoading, error }: GeographyChartProps) 
                 borderRadius: '8px',
                 color: '#EDEDEF',
               }}
-              formatter={(value: number, name, props) => {
+              formatter={(_value: number | undefined, _name: any, props: any) => {
                 const item = props.payload as GeographyData;
                 return [
                   <div key="content" className="space-y-1">
@@ -156,7 +158,7 @@ export function GeographyChart({ data, isLoading, error }: GeographyChartProps) 
               verticalAlign="bottom"
               height={36}
               iconType="circle"
-              formatter={(value, entry: any) => {
+              formatter={(_value: any, entry: any) => {
                 const item = entry.payload as GeographyData;
                 return (
                   <span className="text-xs text-foreground-muted">

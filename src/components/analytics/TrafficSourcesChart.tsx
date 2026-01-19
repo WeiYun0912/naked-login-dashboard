@@ -132,7 +132,7 @@ export function TrafficSourcesChart({ data, isLoading, error }: TrafficSourcesCh
                 color: '#EDEDEF',
               }}
               labelStyle={{ color: '#EDEDEF', fontWeight: 600, marginBottom: '8px' }}
-              formatter={(value, name, props) => {
+              formatter={(_value: any, _name: any, props: any) => {
                 const item = props.payload as TrafficSource;
                 return [
                   <div key="content" className="space-y-1">
@@ -154,7 +154,7 @@ export function TrafficSourcesChart({ data, isLoading, error }: TrafficSourcesCh
               }}
             />
             <Bar dataKey="views" radius={[0, 4, 4, 0]}>
-              {chartData.map((entry, index) => (
+              {chartData.map((_entry, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Bar>
