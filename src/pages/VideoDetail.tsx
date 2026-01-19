@@ -8,8 +8,6 @@ import { Button } from '@/components/ui/Button';
 import { DateRangePicker } from '@/components/ui/DateRangePicker';
 import { ViewsChart } from '@/components/charts/ViewsChart';
 import { TrafficSourcesChart } from '@/components/analytics/TrafficSourcesChart';
-import { DemographicsChart } from '@/components/analytics/DemographicsChart';
-import { GeographyChart } from '@/components/analytics/GeographyChart';
 import { useAuth } from '@/hooks/useAuth';
 import { useYouTubeVideos } from '@/hooks/useYouTubeVideos';
 import { useVideoAnalytics } from '@/hooks/useVideoAnalytics';
@@ -311,19 +309,6 @@ export function VideoDetail() {
                 isLoading={false}
                 error={null}
               />
-            </section>
-
-            {/* Audience Insights */}
-            <section>
-              <h2 className="text-xl font-bold text-foreground mb-4">觀眾洞察</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <DemographicsChart
-                  data={analytics.demographics}
-                  isLoading={false}
-                  error={null}
-                />
-                <GeographyChart data={analytics.geography} isLoading={false} error={null} />
-              </div>
             </section>
           </>
         )}

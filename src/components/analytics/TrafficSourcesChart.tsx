@@ -135,17 +135,17 @@ export function TrafficSourcesChart({ data, isLoading, error }: TrafficSourcesCh
               formatter={(_value: any, _name: any, props: any) => {
                 const item = props.payload as TrafficSource;
                 return [
-                  <div key="content" className="space-y-1">
+                  <div key="content" className="space-y-1" style={{ color: '#EDEDEF' }}>
                     <div>
-                      <span className="text-foreground-muted">觀看次數：</span>
+                      <span style={{ color: '#8A8F98' }}>觀看次數：</span>
                       <span className="ml-2 font-medium">{formatNumber(item.views)}</span>
                     </div>
                     <div>
-                      <span className="text-foreground-muted">觀看時長：</span>
+                      <span style={{ color: '#8A8F98' }}>觀看時長：</span>
                       <span className="ml-2 font-medium">{formatDuration(item.estimatedMinutesWatched)}</span>
                     </div>
                     <div>
-                      <span className="text-foreground-muted">佔比：</span>
+                      <span style={{ color: '#8A8F98' }}>佔比：</span>
                       <span className="ml-2 font-medium">{item.percentage.toFixed(1)}%</span>
                     </div>
                   </div>,

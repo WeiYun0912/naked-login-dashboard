@@ -6,8 +6,6 @@ import { VideoList } from '@/components/videos/VideoList';
 import { SubscriberChart } from '@/components/charts/SubscriberChart';
 import { ViewsChart } from '@/components/charts/ViewsChart';
 import { TrafficSourcesChart } from '@/components/analytics/TrafficSourcesChart';
-import { DemographicsChart } from '@/components/analytics/DemographicsChart';
-import { GeographyChart } from '@/components/analytics/GeographyChart';
 import { LoginButton } from '@/components/auth/LoginButton';
 import { Card } from '@/components/ui/Card';
 import { DateRangePicker } from '@/components/ui/DateRangePicker';
@@ -17,7 +15,6 @@ import { useYouTubeVideos } from '@/hooks/useYouTubeVideos';
 import { useYouTubeAnalytics } from '@/hooks/useYouTubeAnalytics';
 import { useVideoSubscriberStats } from '@/hooks/useVideoSubscriberStats';
 import { useTrafficSources } from '@/hooks/useTrafficSources';
-import { useDemographics } from '@/hooks/useDemographics';
 import { motion } from 'framer-motion';
 
 function YouTubeIcon() {
@@ -58,12 +55,6 @@ export function Dashboard() {
     isLoading: trafficLoading,
     error: trafficError,
   } = useTrafficSources(dateRange, isAuthenticated);
-  const {
-    demographics,
-    geography,
-    isLoading: demographicsLoading,
-    error: demographicsError,
-  } = useDemographics(dateRange, isAuthenticated);
 
   return (
     <div className="min-h-screen relative">
@@ -183,25 +174,6 @@ export function Dashboard() {
               isLoading={trafficLoading}
               error={trafficError}
             />
-          </section>
-        )}
-
-        {/* Audience Demographics Section */}
-        {isAuthenticated && (
-          <section>
-            <h2 className="text-xl font-bold text-foreground mb-4">觀眾洞察</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <DemographicsChart
-                data={demographics}
-                isLoading={demographicsLoading}
-                error={demographicsError}
-              />
-              <GeographyChart
-                data={geography}
-                isLoading={demographicsLoading}
-                error={demographicsError}
-              />
-            </div>
           </section>
         )}
 
