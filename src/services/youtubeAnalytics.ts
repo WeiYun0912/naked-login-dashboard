@@ -181,7 +181,7 @@ export async function fetchVideoSubscriberStats(
     metrics: 'subscribersGained,subscribersLost',
     dimensions: 'video',
     sort: '-subscribersGained',
-    maxResults: '50',
+    maxResults: '150',
   });
 
   const response = await fetch(`${ANALYTICS_BASE_URL}/reports?${params}`, {
