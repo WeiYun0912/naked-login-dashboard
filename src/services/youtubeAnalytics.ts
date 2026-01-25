@@ -498,8 +498,6 @@ export async function fetchGeography(
 export interface VideoAnalytics {
   dailyViews: Array<{ date: string; views: number }>;
   trafficSources: TrafficSource[];
-  demographics: DemographicData[];
-  geography: GeographyData[];
   totalStats: {
     views: number;
     likes: number;
@@ -538,8 +536,6 @@ export async function fetchVideoAnalytics(
   const [
     dailyViewsData,
     trafficSourcesData,
-    demographicsData,
-    geographyData,
     totalStatsData,
   ] = await Promise.all([
     // Daily views
@@ -596,61 +592,6 @@ export async function fetchVideoAnalytics(
       });
     })(),
 
-    // Demographics
-    (async () => {
-      const params = new URLSearchParams({
-        ...baseParams,
-        metrics: 'viewsPercentage',
-        dimensions: 'ageGroup,gender',
-        sort: '-viewsPercentage',
-      });
-
-      const response = await fetch(`${ANALYTICS_BASE_URL}/reports?${params}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-
-      if (!response.ok) throw new Error('Failed to fetch video demographics');
-      const data: AnalyticsResponse = await response.json();
-
-      return (data.rows || []).map((row) => ({
-        ageGroup: AGE_GROUP_NAMES[String(row[0])] || String(row[0]),
-        gender: GENDER_NAMES[String(row[1])] || String(row[1]),
-        viewsPercentage: Number(row[2]) || 0,
-      }));
-    })(),
-
-    // Geography
-    (async () => {
-      const params = new URLSearchParams({
-        ...baseParams,
-        metrics: 'views',
-        dimensions: 'country',
-        sort: '-views',
-        maxResults: '20',
-      });
-
-      const response = await fetch(`${ANALYTICS_BASE_URL}/reports?${params}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-
-      if (!response.ok) throw new Error('Failed to fetch video geography');
-      const data: AnalyticsResponse = await response.json();
-
-      const totalViews = (data.rows || []).reduce((sum, row) => sum + (Number(row[1]) || 0), 0);
-
-      return (data.rows || []).map((row) => {
-        const countryCode = String(row[0]);
-        const views = Number(row[1]) || 0;
-
-        return {
-          country: countryCode,
-          countryName: COUNTRY_NAMES[countryCode] || countryCode,
-          views,
-          viewsPercentage: totalViews > 0 ? (views / totalViews) * 100 : 0,
-        };
-      });
-    })(),
-
     // Total stats
     (async () => {
       const params = new URLSearchParams({
@@ -682,8 +623,6 @@ export async function fetchVideoAnalytics(
   return {
     dailyViews: dailyViewsData,
     trafficSources: trafficSourcesData,
-    demographics: demographicsData,
-    geography: geographyData,
     totalStats: totalStatsData,
   };
 }
