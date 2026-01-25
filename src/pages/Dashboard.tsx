@@ -96,8 +96,30 @@ export function Dashboard() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
+            className="space-y-3"
           >
             <DateRangePicker value={dateRange} onChange={setDateRange} />
+            {/* Data Delay Notice */}
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-accent/10 border border-accent/20">
+              <svg
+                className="w-4 h-4 text-accent mt-0.5 flex-shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <p className="text-xs text-foreground-muted">
+                <span className="font-medium text-accent">提示：</span>
+                YouTube Analytics API 數據有 24-72 小時的延遲，最新上傳的影片可能尚未顯示訂閱貢獻等分析數據。
+                YouTube Studio 顯示的是即時數據，此處顯示的是 API 提供的歷史數據。
+              </p>
+            </div>
           </motion.section>
         )}
 
